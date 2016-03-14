@@ -1,5 +1,4 @@
 import React             from 'react';
-import fetch             from 'isomorphic-fetch';
 import Extras            from './sd-extras';
 import EngineSelector    from './sd-engine-selector';
 import BodytypesSelector from './sd-bodytype-selector';
@@ -42,7 +41,7 @@ export default class SecondaryDetails extends React.Component {
     });
   }
 
-  onExtrasFetch (val) {
+  onExtrasFetch () {
     this.setState({
       isExtrasLoaded : true
     });

@@ -1,5 +1,5 @@
 import React from 'react';
-import fetch from 'isomorphic-fetch';
+import { fetchAboutBodytype } from '../../api';
 
 export default class BodytypesSelector extends React.Component {
   static propTypes = {
@@ -10,27 +10,23 @@ export default class BodytypesSelector extends React.Component {
 
   constructor (props) {
     super(props);
-    this.state = {};
-    this.fetchAboutBodyType(this.props.modelID, this.props.prodYear);
+
+    this.state = {
+      modelID  : this.props.modelID,
+      prodYear : this.props.prodYear
+    };
+
+    fetchAboutBodytype(this.state.modelID, this.state.prodYear)
+      .then((bodytypes) =>
+        this.setState({ bodytypes })
+      );
   }
 
   componentWillReceiveProps (props) {
-    if (props.modelID !== this.state.modelID) {
-      this.fetchAboutBodyType(props.modelID, props.prodYear);
-    }
-  }
+    if (props.modelID === this.state.modelID) return;
 
-  fetchAboutBodyType (id, year) {
-    return fetch(`http://www.pkw.de/api/v1/procurement/models/${id}/${year}/body_types`)
-      .then(res => {
-        return res.json()
-      })
-      .then(bodytypes => {
-        this.setState({
-          modelID : id,
-          bodytypes
-        });
-      });
+    fetchAboutBodytype(props.modelID, props.prodYear)
+      .then((bodytypes) => this.setState({ bodytypes, modelID : props.modelID }))
   }
 
   selectBodytype (ev) {

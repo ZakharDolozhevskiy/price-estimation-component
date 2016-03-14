@@ -1,5 +1,5 @@
 import React from 'react';
-import fetch from 'isomorphic-fetch';
+import { fetchAboutEnginesType }  from '../../api';
 
 export default class EngineSelector extends React.Component {
   static propTypes = {
@@ -15,20 +15,14 @@ export default class EngineSelector extends React.Component {
   }
 
   componentWillReceiveProps (props) {
-      if (props.bodytype !== this.state.bodytype) {
-        this.refreshSelectValue();
-        this.fetchAboutEnginesType(props.modelID, props.prodYear, props.bodytype);
-      }
-  }
+      if (props.bodytype === this.state.bodytype) return;
 
-  fetchAboutEnginesType (id, year, bodytype) {
-    return fetch(`http://www.pkw.de/api/v1/procurement/models/${id}/${year}/engines?body_type=${bodytype}`)
-      .then(res => {
-        return res.json()
-      })
-      .then(engines => {
-        this.setState({ engines, bodytype });
-      });
+      this.refreshSelectValue();
+
+      fetchAboutEnginesType(props.modelID, props.prodYear, props.bodytype)
+        .then(engines =>
+          this.setState({ engines, bodytype : props.bodytype })
+        );
   }
 
   refreshSelectValue () {

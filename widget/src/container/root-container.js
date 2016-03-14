@@ -1,5 +1,5 @@
 import React from 'react';
-import fetch from 'isomorphic-fetch';
+import { fetchPrediction } from '../api';
 import SearchResult from '../components/search-result';
 import PrimaryDetails from '../components/primary-details';
 import SecondaryDetails from '../components/secondary-details';
@@ -8,7 +8,8 @@ export default class Root extends React.Component {
   constructor () {
     super();
     this.state = {
-      secondaryActive : false
+      secondaryActive : false,
+      searchResult    : null
     };
   }
 
@@ -16,25 +17,15 @@ export default class Root extends React.Component {
     return '' + str.split('&power=').reverse()[0] * 100;
   }
 
-  fetchPrediction (opt) {
-    const URL = 'http://pkw.de/api/v1/cars/search';
-    const payload = {
-      //power_from : this._parseEnginePower(opt.engine),
-      brand      : +this.state.brandID,
-      //model      : this.state.modelID,
-      //initial_registration : this.state.year,
-    };
-
-    if (opt.kilometers) { payload.mileage = opt.kilometers; }
-
-    fetch(URL, {
-      method  : 'post',
-     // headers : {'Accept': 'application/json', 'Content-Type': 'application/json'},
-     // body    : JSON.stringify(payload)
-    })
-      .then(res => res.json())
-      .then(data => {})
-      .catch(err => {});
+  getPredictionParams (opt) {
+    return {
+      brand        : this.state.brandID,
+      model        : this.state.modelID,
+      mileage      : opt.kilometers || 0,
+      bodytype     : opt.bodytype,
+      power_from   : this._parseEnginePower(opt.engine),
+      initial_registration_from : this.state.year,
+    }
   }
 
   getPrimaryDetails (data) {
@@ -47,11 +38,9 @@ export default class Root extends React.Component {
   }
 
   getSecondaryDetails (data) {
-    this.fetchPrediction({
-      bodytype   : data.bodytype,
-      engine     : data.engine,
-      kilometers : data.kilometers
-    });
+    const params = this.getPredictionParams(data);
+
+    fetchPrediction(params).then(res => this.setState({ searchResult : res.results }) );
   }
 
   render () {
@@ -66,7 +55,7 @@ export default class Root extends React.Component {
           onStepComplite={this.getSecondaryDetails.bind(this)}
          />
         <SearchResult
-          result={null}
+          result={this.state.searchResult}
         />
       </div>
     );

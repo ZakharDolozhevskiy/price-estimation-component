@@ -1,5 +1,5 @@
 import React from 'react';
-import fetch from 'isomorphic-fetch';
+import { fetchProductionYear } from '../../api';
 
 const months      = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const defaultYears = { from: 1900, to: new Date().getFullYear() };
@@ -16,25 +16,18 @@ export default class RegistrationYearSelector extends React.Component {
   }
 
   componentWillReceiveProps (props) {
-    if (props.modelID) {
-      this.fetchProductionYear(props.modelID);
+    if (props.modelID && props.modelID !== this.state.modelID) {
+      fetchProductionYear(props.modelID)
+        .then(this.createListWithYears.bind(this))
+        .catch(this._errorFetchHandler.bind(this));
     } else {
       this.setState({ availableYears : null });
       this.resetSelection();
     }
   }
 
-  fetchProductionYear (modelID) {
-    return fetch(`http://www.pkw.de/api/v1/procurement/models/${modelID}/production_years`)
-      .then(res => {
-        return res.json()
-      })
-      .then(fetchedYears => {
-        this.createListWithYears(fetchedYears);
-      })
-      .catch(err => {
-        this.createListWithYears(defaultYears);
-      })
+  _errorFetchHandler () {
+    this.createListWithYears(defaultYears);
   }
 
   createListWithYears (param) {
@@ -44,7 +37,10 @@ export default class RegistrationYearSelector extends React.Component {
       availableYears.push(i);
     }
 
-    this.setState({ availableYears });
+    this.setState({
+      availableYears,
+      modelID : this.props.modelID
+    });
   }
 
   resetSelection () {

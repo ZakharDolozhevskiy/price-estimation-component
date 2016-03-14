@@ -1,5 +1,5 @@
 import React from 'react';
-import fetch from 'isomorphic-fetch';
+import { fetchExtras } from '../../api';
 
 export default class Extras extends React.Component {
   static propTypes = {
@@ -16,26 +16,16 @@ export default class Extras extends React.Component {
   }
 
   componentWillReceiveProps (props) {
-    if (props.modelID !== this.state.modelID && props.engine) {
-      this.fetchExtras(props.prodYear, props.modelID, props.bodytype, props.engine);
-      this.setState({ modelID : props.modelID });
-    }
+    if (props.modelID === this.state.modelID || !props.engine) return;
+
+    fetchExtras(props.modelID, props.prodYear, props.bodytype, props.engine).then(this.fetchHandler.bind(this));
+
+    this.setState({ modelID : props.modelID });
   }
 
-  fetchExtras (year, model, bodytype, engine) {
-    const URL    = `http://www.pkw.de/api/v1/procurement/models/${model}/${year}/car`;
-    const params = `body_type=${bodytype}&engine=${engine}`;
-
-    return fetch(`${URL}?${params}`)
-      .then(res => {
-        return res.json()
-      })
-      .then(res => {
-        this.props.onFetch();
-        this.setState({
-          extras : res.extras
-        });
-      });
+  fetchHandler (response) {
+    this.props.onFetch();
+    this.setState({ extras : response.extras });
   }
 
   printExtras (source) {

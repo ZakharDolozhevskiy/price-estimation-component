@@ -1,5 +1,5 @@
 import React from 'react';
-import fetch from 'isomorphic-fetch';
+import { fetchBrands } from '../../api';
 import BrandSelector from './pd-brands-selector';
 import ModelSelector from './pd-models-selector';
 import RegistrationYearSelector from './pd-registration-selector';
@@ -12,17 +12,7 @@ export default class PrimaryDetails extends React.Component {
   constructor(props) {
     super(props);
     this.state = {};
-    this.fetchInitialData();
-  }
-
-  fetchInitialData () {
-    return fetch(`http://www.pkw.de/api/v1/brands/models`)
-      .then(res => {
-        return res.json()
-      })
-      .then(brands => {
-        this.setState({ brands });
-      });
+    fetchBrands().then( brands => this.setState({ brands }) );
   }
 
   onBrandSelection (selectedBrand) {
