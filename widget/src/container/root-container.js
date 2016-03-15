@@ -4,7 +4,12 @@ import SearchResult from '../components/search-result';
 import PrimaryDetails from '../components/primary-details';
 import SecondaryDetails from '../components/secondary-details';
 
+/**
+ * Main container
+ * Contains logic of children components communication
+ */
 export default class Root extends React.Component {
+
   constructor () {
     super();
     this.state = {
@@ -13,10 +18,21 @@ export default class Root extends React.Component {
     };
   }
 
+  /**
+   * Helper method. Parse engine power
+   * @param {String} str - describe selected engine
+   * @returns {String} - parsed engine value
+   * @private
+   */
   _parseEnginePower (str) {
     return `${str.split('&power=').reverse()[0] * 100}`;
   }
 
+  /**
+   * Concat search params from children components
+   * @param {Object} opt - search params
+   * @returns {Object} - collected prams for search
+   */
   getPredictionParams (opt) {
     return {
       brand        : this.state.brandID,
@@ -28,6 +44,10 @@ export default class Root extends React.Component {
     };
   }
 
+  /**
+   * Look for params of primary details component and go to next step
+   * @param data
+   */
   getPrimaryDetails (data) {
     this.setState({
       brandID : data.brandID,
@@ -37,12 +57,20 @@ export default class Root extends React.Component {
     });
   }
 
+  /**
+   * Collect and concat all search params and initiate search
+   * @param data
+   */
   getSecondaryDetails (data) {
     const params = this.getPredictionParams(data);
 
     fetchPrediction(params).then(res => this.setState({ searchResult : res.results }));
   }
 
+  /**
+   * Hide search result component and secondary details
+   * section when a brand or model selected again.
+   */
   refreshSelection () {
     this.setState({
       secondaryActive : false,

@@ -1,6 +1,10 @@
 import React from 'react';
 
+/**
+ * Print search result
+ */
 export default class SearchResult extends React.Component {
+
   static propTypes = {
     result : React.PropTypes.array
   };

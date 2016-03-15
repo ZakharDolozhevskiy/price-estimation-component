@@ -1693,8 +1693,18 @@ var _pdRegistrationSelector2 = _interopRequireDefault(_pdRegistrationSelector);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/**
+ * Component response for getting info about brand, model and production year
+ */
+
 var PrimaryDetails = function (_React$Component) {
   (0, _inherits3.default)(PrimaryDetails, _React$Component);
+
+
+  /**
+   * Get list of cars brands
+   * @param props
+   */
 
   function PrimaryDetails(props) {
     (0, _classCallCheck3.default)(this, PrimaryDetails);
@@ -1707,6 +1717,12 @@ var PrimaryDetails = function (_React$Component) {
     });
     return _this;
   }
+
+  /**
+   * Fetch list of model for selected brand
+   * @param {String} selectedBrand - selected brand ID
+   */
+
 
   (0, _createClass3.default)(PrimaryDetails, [{
     key: 'onBrandSelection',
@@ -1721,14 +1737,23 @@ var PrimaryDetails = function (_React$Component) {
         modelID: null
       });
 
+      // Reset previously selected info
       this.props.onChangeSelection();
     }
   }, {
     key: 'onModelSelection',
     value: function onModelSelection(modelID) {
       this.setState({ modelID: modelID });
+
+      // Reset previously selected info
       this.props.onChangeSelection();
     }
+
+    /**
+     * Notify the parent component when user added primary details
+     * @param {String} year - selected production year
+     */
+
   }, {
     key: 'onYearSelection',
     value: function onYearSelection(year) {
@@ -1807,6 +1832,10 @@ var _react2 = _interopRequireDefault(_react);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/**
+ * Response for brand selection
+ */
+
 var BrandSelector = function (_React$Component) {
   (0, _inherits3.default)(BrandSelector, _React$Component);
 
@@ -1819,11 +1848,24 @@ var BrandSelector = function (_React$Component) {
     return _this;
   }
 
+  /**
+   * Notify parent component when brand selected
+   * @param {Object} ev - event object
+   */
+
+
   (0, _createClass3.default)(BrandSelector, [{
     key: "handleBrandSelect",
     value: function handleBrandSelect(ev) {
       this.props.onSelect(ev.target.value);
     }
+
+    /**
+     * Helper methods. Render select's options
+     * @param {Array} source - list of data about each brand
+     * @returns {Array} list of react components
+     */
+
   }, {
     key: "printOptions",
     value: function printOptions(source) {
@@ -1905,6 +1947,10 @@ var _react2 = _interopRequireDefault(_react);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/**
+ * Response for model selection
+ */
+
 var ModelSelector = function (_React$Component) {
   (0, _inherits3.default)(ModelSelector, _React$Component);
 
@@ -1917,6 +1963,13 @@ var ModelSelector = function (_React$Component) {
     return _this;
   }
 
+  /**
+   * Look for models list changes
+   * @param {Object} props Component properties
+   * @param {Array} props.models list of models's data
+   */
+
+
   (0, _createClass3.default)(ModelSelector, [{
     key: "componentWillReceiveProps",
     value: function componentWillReceiveProps(props) {
@@ -1926,11 +1979,24 @@ var ModelSelector = function (_React$Component) {
         this.setState({ models: null });
       }
     }
+
+    /**
+     * Notify parent component when model selected
+     * @param {Object} ev - event object
+     */
+
   }, {
     key: "handleModelSelect",
     value: function handleModelSelect(ev) {
       this.props.onSelect(ev.target.value);
     }
+
+    /**
+     * Helper methods. Render select's options
+     * @param {Array} source - list of data about each model
+     * @returns {Array} list of react components
+     */
+
   }, {
     key: "printOptions",
     value: function printOptions(source) {
@@ -1945,8 +2011,6 @@ var ModelSelector = function (_React$Component) {
   }, {
     key: "render",
     value: function render() {
-      var modelsOptionsList = this.printOptions(this.state.models);
-
       return _react2.default.createElement(
         "div",
         null,
@@ -1966,7 +2030,7 @@ var ModelSelector = function (_React$Component) {
             { value: "" },
             "select please"
           ),
-          modelsOptionsList
+          this.printOptions(this.state.models)
         )
       );
     }
@@ -2024,6 +2088,10 @@ var defaultYears = {
   to: new Date().getFullYear()
 };
 
+/**
+ * Response for first registration year selection
+ */
+
 var RegistrationYearSelector = function (_React$Component) {
   (0, _inherits3.default)(RegistrationYearSelector, _React$Component);
 
@@ -2036,11 +2104,24 @@ var RegistrationYearSelector = function (_React$Component) {
     return _this;
   }
 
+  /**
+   * Look for models list changes
+   * @param {Object} props Component properties
+   * @param {String} props.modelID ID of selected model
+   */
+
+
   (0, _createClass3.default)(RegistrationYearSelector, [{
     key: 'componentWillReceiveProps',
     value: function componentWillReceiveProps(props) {
+      var _this2 = this;
+
+      // Reset current selection and refresh generated list of available years
       if (!props.modelID) {
+
+        // clear selected inputs
         this.resetSelection();
+
         this.setState({
           modelID: null,
           availableYears: null
@@ -2050,15 +2131,26 @@ var RegistrationYearSelector = function (_React$Component) {
       }
 
       if (props.modelID !== this.state.modelID) {
+        // clear selected inputs
         this.resetSelection();
-        (0, _api.fetchProductionYear)(props.modelID).then(this.createListWithYears.bind(this)).catch(this._errorFetchHandler.bind(this));
+
+        /**
+         * Fetch available productions year of the selected model.
+         * Create list with default years if fetch failed.
+         */
+        (0, _api.fetchProductionYear)(props.modelID).then(this.createListWithYears.bind(this)).catch(function () {
+          _this2.createListWithYears(defaultYears);
+        });
       }
     }
-  }, {
-    key: '_errorFetchHandler',
-    value: function _errorFetchHandler() {
-      this.createListWithYears(defaultYears);
-    }
+
+    /**
+     * Create list with years
+     * @param {Object} param
+     * @param {Number} param.from - the year of list start
+     * @param {Number} param.to - the year of list end
+     */
+
   }, {
     key: 'createListWithYears',
     value: function createListWithYears(param) {
@@ -2073,12 +2165,21 @@ var RegistrationYearSelector = function (_React$Component) {
         modelID: this.props.modelID
       });
     }
+
+    // Refresh select inputs
+
   }, {
     key: 'resetSelection',
     value: function resetSelection() {
       this.refs.months[0].defaultSelected = true;
       this.refs.years[0].defaultSelected = true;
     }
+
+    /**
+     * Notify parent component when year selected
+     * @param {Object} ev - event object
+     */
+
   }, {
     key: 'handleYearSelect',
     value: function handleYearSelect(ev) {
@@ -2087,6 +2188,14 @@ var RegistrationYearSelector = function (_React$Component) {
 
       this.props.onSelect(year + '-' + month);
     }
+
+    /**
+     * Helper method. Transform production data output for months.
+     * @param {String} val - Selected month name
+     * @returns {string} - transformed value
+     * @private
+     */
+
   }, {
     key: '_parseMonthOrder',
     value: function _parseMonthOrder(val) {
@@ -2099,6 +2208,13 @@ var RegistrationYearSelector = function (_React$Component) {
 
       return month;
     }
+
+    /**
+     * Helper methods. Render select's options
+     * @param {Array} source - list of year or months
+     * @returns {Array} list of react components
+     */
+
   }, {
     key: 'printOptions',
     value: function printOptions(source) {
@@ -2197,6 +2313,10 @@ var _react = (typeof window !== "undefined" ? window['React'] : typeof global !=
 var _react2 = _interopRequireDefault(_react);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * Print search result
+ */
 
 var SearchResult = function (_React$Component) {
   (0, _inherits3.default)(SearchResult, _React$Component);
@@ -2370,6 +2490,10 @@ var _sdBodytypeSelector2 = _interopRequireDefault(_sdBodytypeSelector);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/**
+ * Component responses for getting secondary details about searched car
+ */
+
 var SecondaryDetails = function (_React$Component) {
   (0, _inherits3.default)(SecondaryDetails, _React$Component);
 
@@ -2387,6 +2511,13 @@ var SecondaryDetails = function (_React$Component) {
     value: function componentWillReceiveProps(props) {
       this.setState({ modelID: props.modelID, year: props.year });
     }
+
+    /**
+     * Listen for bodytype changes.
+     * If bodytype fetch error hide engine and bodytype filed and stop to load extras options
+     * @param {Object} res - payload from bodytype component
+     */
+
   }, {
     key: 'onBodytypeSelect',
     value: function onBodytypeSelect(res) {
@@ -2405,6 +2536,12 @@ var SecondaryDetails = function (_React$Component) {
     value: function onEngineSelect(val) {
       this.setState({ isCompleted: true, engine: val });
     }
+
+    /**
+     * Handle click by search button.
+     * Collect added search options and notify parent component.
+     */
+
   }, {
     key: 'onSearch',
     value: function onSearch() {
@@ -2413,11 +2550,6 @@ var SecondaryDetails = function (_React$Component) {
         engine: this.state.engine || '',
         kilometers: this.refs.kilometers.value || '0'
       });
-
-      //this.setState({
-      //  bodytype    : null,
-      //  engine      : null
-      //});
     }
   }, {
     key: 'render',
@@ -2519,8 +2651,20 @@ var _api = require('../../api');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/**
+ * Response for bodytype selection
+ */
+
 var BodytypesSelector = function (_React$Component) {
   (0, _inherits3.default)(BodytypesSelector, _React$Component);
+
+
+  /**
+   * Receive properties and fetch bodytype list
+   * @param {Object} props - Component properties
+   * @param {String} props.modelID - model ID
+   * @param {String} props.prodYear - production year
+   */
 
   function BodytypesSelector(props) {
     (0, _classCallCheck3.default)(this, BodytypesSelector);
@@ -2539,11 +2683,19 @@ var BodytypesSelector = function (_React$Component) {
         this.getBodytypes(props.modelID, props.prodYear);
       }
     }
+
+    /**
+     * Fetch bodytypes by selected model and production year
+     * @param {String} modelID
+     * @param {String} prodYear
+       */
+
   }, {
     key: 'getBodytypes',
     value: function getBodytypes(modelID, prodYear) {
       var _this2 = this;
 
+      // Notify parent component if error occurs
       var _fetchError = function _fetchError() {
         _this2.setState({ modelID: modelID });
         _this2.props.onSelect({ fetchError: true });
@@ -2555,11 +2707,24 @@ var BodytypesSelector = function (_React$Component) {
 
       (0, _api.fetchAboutBodytype)(modelID, prodYear).then(_fetchSuccess).catch(_fetchError);
     }
+
+    /**
+     * Notify parent component when bodytype selected
+     * @param {Object} ev - event object
+     */
+
   }, {
     key: 'selectBodytype',
     value: function selectBodytype(ev) {
       this.props.onSelect(ev.target.value);
     }
+
+    /**
+     * Helper methods. Render select's options
+     * @param {Array} source - list of data about each bodytype
+     * @returns {Array} list of react components
+     */
+
   }, {
     key: 'printBodytypesList',
     value: function printBodytypesList(source) {
@@ -2647,6 +2812,10 @@ var _api = require('../../api');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/**
+ * Response for engine selection
+ */
+
 var EngineSelector = function (_React$Component) {
   (0, _inherits3.default)(EngineSelector, _React$Component);
 
@@ -2658,6 +2827,15 @@ var EngineSelector = function (_React$Component) {
     _this.state = {};
     return _this;
   }
+
+  /**
+   * Fetch available engines by selected bodytype and model
+   * @param {Object} props Component properties
+   * @param {String} props.modelID - selected model id
+   * @param {String} props.prodYear - selected production year
+   * @param {String} props.bodytype - selected bodytype
+   */
+
 
   (0, _createClass3.default)(EngineSelector, [{
     key: 'componentWillReceiveProps',
@@ -2676,11 +2854,22 @@ var EngineSelector = function (_React$Component) {
         });
       });
     }
+
+    /**
+     * Reset previous selected input value
+     */
+
   }, {
     key: 'refreshSelectValue',
     value: function refreshSelectValue() {
       this.refs.engines[0].defaultSelected = true;
     }
+
+    /**
+     * Notify parent component when engine selected
+     * @param {Object} ev - event object
+     */
+
   }, {
     key: 'selectEngine',
     value: function selectEngine(ev) {
@@ -2688,6 +2877,13 @@ var EngineSelector = function (_React$Component) {
     }
   }, {
     key: 'printEnginesList',
+
+
+    /**
+     * Helper methods. Render select's options
+     * @param {Array} source - list of data about each engine
+     * @returns {Array} list of react components
+     */
     value: function printEnginesList(source) {
       var value = null;
 
@@ -2783,6 +2979,10 @@ var _api = require('../../api');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/**
+ * Response for extras options selection
+ */
+
 var Extras = function (_React$Component) {
   (0, _inherits3.default)(Extras, _React$Component);
 
@@ -2795,20 +2995,37 @@ var Extras = function (_React$Component) {
     return _this;
   }
 
+  /**
+   * Fetch extras option about selected model with available options
+   * @param {Object} props Component properties
+   * @param {String} props.modelID - selected model id
+   * @param {String} props.engine - selected engine
+   * @param {String} props.prodYear - selected production year
+   * @param {String} props.bodytype - selected bodytype
+   */
+
+
   (0, _createClass3.default)(Extras, [{
     key: 'componentWillReceiveProps',
     value: function componentWillReceiveProps(props) {
+      var _this2 = this;
+
       if (props.modelID === this.state.modelID || !props.engine) return;
 
-      (0, _api.fetchExtras)(props.modelID, props.prodYear, props.bodytype, props.engine).then(this.fetchHandler.bind(this));
+      (0, _api.fetchExtras)(props.modelID, props.prodYear, props.bodytype, props.engine).then(function (response) {
+        _this2.setState({
+          modelID: props.modelID,
+          extras: response.extras
+        });
+      });
+    }
 
-      this.setState({ modelID: props.modelID });
-    }
-  }, {
-    key: 'fetchHandler',
-    value: function fetchHandler(response) {
-      this.setState({ extras: response.extras });
-    }
+    /**
+     * Helper methods. Render select's options
+     * @param {Array} source - list of extras options
+     * @returns {Array} list of react components
+     */
+
   }, {
     key: 'printExtras',
     value: function printExtras(source) {
@@ -2908,6 +3125,11 @@ var _secondaryDetails2 = _interopRequireDefault(_secondaryDetails);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/**
+ * Main container
+ * Contains logic of children components communication
+ */
+
 var Root = function (_React$Component) {
   (0, _inherits3.default)(Root, _React$Component);
 
@@ -2923,11 +3145,26 @@ var Root = function (_React$Component) {
     return _this;
   }
 
+  /**
+   * Helper method. Parse engine power
+   * @param {String} str - describe selected engine
+   * @returns {String} - parsed engine value
+   * @private
+   */
+
+
   (0, _createClass3.default)(Root, [{
     key: '_parseEnginePower',
     value: function _parseEnginePower(str) {
       return '' + str.split('&power=').reverse()[0] * 100;
     }
+
+    /**
+     * Concat search params from children components
+     * @param {Object} opt - search params
+     * @returns {Object} - collected prams for search
+     */
+
   }, {
     key: 'getPredictionParams',
     value: function getPredictionParams(opt) {
@@ -2940,6 +3177,12 @@ var Root = function (_React$Component) {
         initial_registration_from: this.state.year
       };
     }
+
+    /**
+     * Look for params of primary details component and go to next step
+     * @param data
+     */
+
   }, {
     key: 'getPrimaryDetails',
     value: function getPrimaryDetails(data) {
@@ -2950,6 +3193,12 @@ var Root = function (_React$Component) {
         secondaryActive: true
       });
     }
+
+    /**
+     * Collect and concat all search params and initiate search
+     * @param data
+     */
+
   }, {
     key: 'getSecondaryDetails',
     value: function getSecondaryDetails(data) {
@@ -2961,6 +3210,12 @@ var Root = function (_React$Component) {
         return _this2.setState({ searchResult: res.results });
       });
     }
+
+    /**
+     * Hide search result component and secondary details
+     * section when a brand or model selected again.
+     */
+
   }, {
     key: 'refreshSelection',
     value: function refreshSelection() {

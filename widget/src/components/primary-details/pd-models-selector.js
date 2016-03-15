@@ -1,6 +1,10 @@
 import React from 'react';
 
+/**
+ * Response for model selection
+ */
 export default class ModelSelector extends React.Component {
+
   static propTypes = {
     models   : React.PropTypes.array,
     onSelect : React.PropTypes.func.isRequired
@@ -11,6 +15,11 @@ export default class ModelSelector extends React.Component {
     this.state = {};
   }
 
+  /**
+   * Look for models list changes
+   * @param {Object} props Component properties
+   * @param {Array} props.models list of models's data
+   */
   componentWillReceiveProps (props) {
     if (props.models) {
       this.setState({ models : props.models });
@@ -19,17 +28,24 @@ export default class ModelSelector extends React.Component {
     }
   }
 
+  /**
+   * Notify parent component when model selected
+   * @param {Object} ev - event object
+   */
   handleModelSelect (ev) {
     this.props.onSelect(ev.target.value);
   }
 
+  /**
+   * Helper methods. Render select's options
+   * @param {Array} source - list of data about each model
+   * @returns {Array} list of react components
+   */
   printOptions (source) {
     return source ? source.map(el => <option key={el.id} value={el.id}>{el.name}</option>) : null;
   }
 
   render () {
-    const modelsOptionsList = this.printOptions(this.state.models);
-
     return (
       <div>
         <label htmlFor="models-selector"> Models </label>
@@ -38,7 +54,7 @@ export default class ModelSelector extends React.Component {
           onChange={this.handleModelSelect.bind(this)}
         >
           <option value="">select please</option>
-          { modelsOptionsList }
+          { this.printOptions(this.state.models) }
         </select>
       </div>
     )

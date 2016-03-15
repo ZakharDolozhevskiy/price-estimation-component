@@ -25,6 +25,31 @@ $ npm install                   # Install Node modules listed in ./package.json 
 $ npm start                     # Compile and launch
 ```
 
+To use component on your website:
+
+Don't forget to add dependencies
+
+```html
+    <script src="../widget/vendor/react.min.js"></script>
+    <script src="../widget/vendor/react-dom.min.js"></script>
+```
+
+Add component
+
+```html
+  <script src="../widget/build/index.js"></script>
+```
+
+Then render component
+
+```html
+    <script>
+        var component = React.createFactory(EstimationComponent)({});
+
+        ReactDOM.render(component, document.getElementById('box'));
+    </script>
+```
+
 Structure
 ---------
 

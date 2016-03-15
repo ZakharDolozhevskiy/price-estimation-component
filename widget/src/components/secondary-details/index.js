@@ -3,7 +3,11 @@ import Extras            from './sd-extras';
 import EngineSelector    from './sd-engine-selector';
 import BodytypesSelector from './sd-bodytype-selector';
 
+/**
+ * Component responses for getting secondary details about searched car
+ */
 export default class SecondaryDetails extends React.Component {
+
   static propTypes = {
     year           : React.PropTypes.string,
     modelID        : React.PropTypes.string,
@@ -20,6 +24,11 @@ export default class SecondaryDetails extends React.Component {
       this.setState({ modelID : props.modelID, year : props.year });
   }
 
+  /**
+   * Listen for bodytype changes.
+   * If bodytype fetch error hide engine and bodytype filed and stop to load extras options
+   * @param {Object} res - payload from bodytype component
+   */
   onBodytypeSelect (res) {
     if (!res.fetchError) {
       this.setState({ isCompleted : false, bodytype : res });
@@ -36,17 +45,16 @@ export default class SecondaryDetails extends React.Component {
     this.setState({ isCompleted : true, engine : val });
   }
 
+  /**
+   * Handle click by search button.
+   * Collect added search options and notify parent component.
+   */
   onSearch () {
     this.props.onStepComplete({
       bodytype   : this.state.bodytype || '',
       engine     : this.state.engine   || '',
       kilometers : this.refs.kilometers.value || '0'
     });
-
-    //this.setState({
-    //  bodytype    : null,
-    //  engine      : null
-    //});
   }
 
   render () {

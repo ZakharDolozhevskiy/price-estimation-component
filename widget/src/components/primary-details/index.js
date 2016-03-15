@@ -4,18 +4,30 @@ import BrandSelector from './pd-brands-selector';
 import ModelSelector from './pd-models-selector';
 import RegistrationYearSelector from './pd-registration-selector';
 
+/**
+ * Component response for getting info about brand, model and production year
+ */
 export default class PrimaryDetails extends React.Component {
+
   static propTypes = {
     onStepComplete    : React.PropTypes.func.isRequired,
     onChangeSelection : React.PropTypes.func.isRequired
   };
 
+  /**
+   * Get list of cars brands
+   * @param props
+   */
   constructor (props) {
     super(props);
     this.state = {};
     fetchBrands().then( brands => this.setState({ brands }) );
   }
 
+  /**
+   * Fetch list of model for selected brand
+   * @param {String} selectedBrand - selected brand ID
+   */
   onBrandSelection (selectedBrand) {
     const brand = this.state.brands.filter((brand) => brand.id === +selectedBrand)[0];
 
@@ -25,14 +37,21 @@ export default class PrimaryDetails extends React.Component {
       modelID : null
     });
 
+    // Reset previously selected info
     this.props.onChangeSelection();
   }
 
   onModelSelection (modelID) {
     this.setState({ modelID });
+
+    // Reset previously selected info
     this.props.onChangeSelection();
   }
 
+  /**
+   * Notify the parent component when user added primary details
+   * @param {String} year - selected production year
+   */
   onYearSelection (year) {
     this.props.onStepComplete({
       brandID : this.state.brandID,
