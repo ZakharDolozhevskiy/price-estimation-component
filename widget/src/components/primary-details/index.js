@@ -6,10 +6,11 @@ import RegistrationYearSelector from './pd-registration-selector';
 
 export default class PrimaryDetails extends React.Component {
   static propTypes = {
-    onStepComplite: React.PropTypes.func.isRequired
+    onStepComplete    : React.PropTypes.func.isRequired,
+    onChangeSelection : React.PropTypes.func.isRequired
   };
 
-  constructor(props) {
+  constructor (props) {
     super(props);
     this.state = {};
     fetchBrands().then( brands => this.setState({ brands }) );
@@ -23,16 +24,17 @@ export default class PrimaryDetails extends React.Component {
       brandID : selectedBrand,
       modelID : null
     });
+
+    this.props.onChangeSelection();
   }
 
   onModelSelection (modelID) {
     this.setState({ modelID });
+    this.props.onChangeSelection();
   }
 
   onYearSelection (year) {
-    if (!this.state.brandID && !this.state.modelID) return;
-
-    this.props.onStepComplite({
+    this.props.onStepComplete({
       brandID : this.state.brandID,
       modelID : this.state.modelID,
       year

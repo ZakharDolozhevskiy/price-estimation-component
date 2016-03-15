@@ -8,51 +8,45 @@ export default class SecondaryDetails extends React.Component {
     year           : React.PropTypes.string,
     modelID        : React.PropTypes.string,
     isActive       : React.PropTypes.bool.isRequired,
-    onStepComplite : React.PropTypes.func.isRequired,
+    onStepComplete : React.PropTypes.func.isRequired
   };
 
   constructor (props) {
     super(props);
-    this.state = {
-      isCompleted : false
-    };
+    this.state = { isCompleted : false };
   }
 
   componentWillReceiveProps (props) {
-    if (!props.isActive) return;
-
-    this.setState({
-      modelID : props.modelID,
-      year    : props.year
-    });
+      this.setState({ modelID : props.modelID, year : props.year });
   }
 
-  onBodytypeSelect (val) {
-    this.setState({
-      isCompleted : false,
-      bodytype    : val
-    });
+  onBodytypeSelect (res) {
+    if (!res.fetchError) {
+      this.setState({ isCompleted : false, bodytype : res });
+    } else {
+      this.setState({
+        isCompleted : true,
+        bodytype    : null,
+        engine      : null
+      });
+    }
   }
 
   onEngineSelect (val) {
-    this.setState({
-      isCompleted : true,
-      engine      : val
-    });
-  }
-
-  onExtrasFetch () {
-    this.setState({
-      isExtrasLoaded : true
-    });
+    this.setState({ isCompleted : true, engine : val });
   }
 
   onSearch () {
-    this.props.onStepComplite({
-      bodytype   : this.state.bodytype,
-      engine     : this.state.engine,
-      kilometers : this.refs.kilometers.value || null
+    this.props.onStepComplete({
+      bodytype   : this.state.bodytype || '',
+      engine     : this.state.engine   || '',
+      kilometers : this.refs.kilometers.value || '0'
     });
+
+    //this.setState({
+    //  bodytype    : null,
+    //  engine      : null
+    //});
   }
 
   render () {
@@ -78,7 +72,8 @@ export default class SecondaryDetails extends React.Component {
           <button
             type="button"
             onClick={this.onSearch.bind(this)}
-            disabled={!this.state.isCompleted || !this.state.isExtrasLoaded}>
+            modelID ={this.state.modelID}
+            disabled={!this.state.isCompleted}>
             Receive the prediction
           </button>
         </div>
@@ -87,7 +82,6 @@ export default class SecondaryDetails extends React.Component {
           prodYear={this.state.year}
           modelID ={this.state.modelID}
           engine  ={this.state.engine}
-          onFetch ={this.onExtrasFetch.bind(this)}
         />
       </div>
     )

@@ -2,11 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Example of component usage</title>
+    <script src="../widget/vendor/react.min.js"></script>
+    <script src="../widget/vendor/react-dom.min.js"></script>
 </head>
 <body>
 <div id="box"></div>
-<script src="../widget/vendor/libs.js"></script>
-<script src="../widget/dist/bundle.js"></script>
+<script src="../widget/build/index.js"></script>
+<script>
+    var component = React.createFactory(EstimationComponent)({});
+
+    ReactDOM.render(component, document.getElementById('box'));
+</script>
 </body>
 </html>

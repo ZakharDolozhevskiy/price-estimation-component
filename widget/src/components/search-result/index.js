@@ -47,10 +47,11 @@ export default class SearchResult extends React.Component {
   }
 
   render () {
-    if (!this.props.result) return null;
-
-    if (!this.props.result.length) {
-      return ( <p>Can't find cars by this search params</p> )
+    if (!this.props.result) {
+      return null;
+    }
+    else if (!this.props.result.length) {
+      return <p>Can't find cars by this search params</p>;
     }
 
     return (

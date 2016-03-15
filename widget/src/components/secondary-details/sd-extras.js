@@ -6,8 +6,7 @@ export default class Extras extends React.Component {
     modelID  : React.PropTypes.string.isRequired,
     prodYear : React.PropTypes.string.isRequired,
     bodytype : React.PropTypes.string,
-    engine   : React.PropTypes.string,
-    onFetch  : React.PropTypes.func
+    engine   : React.PropTypes.string
   };
 
   constructor (props) {
@@ -18,25 +17,25 @@ export default class Extras extends React.Component {
   componentWillReceiveProps (props) {
     if (props.modelID === this.state.modelID || !props.engine) return;
 
-    fetchExtras(props.modelID, props.prodYear, props.bodytype, props.engine).then(this.fetchHandler.bind(this));
+    fetchExtras(props.modelID, props.prodYear, props.bodytype, props.engine)
+      .then(this.fetchHandler.bind(this));
 
     this.setState({ modelID : props.modelID });
   }
 
   fetchHandler (response) {
-    this.props.onFetch();
     this.setState({ extras : response.extras });
   }
 
   printExtras (source) {
-    return Object.keys(source).map((key, index) => {
+    return Object.keys(source).map((key) => {
       const item = source[key];
 
       return (
-        <div>
+        <div key={item.id}>
           <label>
             {item.label}
-            <input type="checkbox" key={item.id} value={item.label}/>
+            <input type="checkbox" value={item.label}/>
           </label>
         </div>
       )

@@ -14,18 +14,18 @@ export default class Root extends React.Component {
   }
 
   _parseEnginePower (str) {
-    return '' + str.split('&power=').reverse()[0] * 100;
+    return `${str.split('&power=').reverse()[0] * 100}`;
   }
 
   getPredictionParams (opt) {
     return {
       brand        : this.state.brandID,
       model        : this.state.modelID,
-      mileage      : opt.kilometers || 0,
+      mileage_from : opt.kilometers,
       bodytype     : opt.bodytype,
       power_from   : this._parseEnginePower(opt.engine),
-      initial_registration_from : this.state.year,
-    }
+      initial_registration_from : this.state.year
+    };
   }
 
   getPrimaryDetails (data) {
@@ -33,27 +33,36 @@ export default class Root extends React.Component {
       brandID : data.brandID,
       modelID : data.modelID,
       year    : data.year,
-      secondaryActive : true,
-    })
+      secondaryActive : true
+    });
   }
 
   getSecondaryDetails (data) {
     const params = this.getPredictionParams(data);
 
-    fetchPrediction(params).then(res => this.setState({ searchResult : res.results }) );
+    fetchPrediction(params).then(res => this.setState({ searchResult : res.results }));
+  }
+
+  refreshSelection () {
+    this.setState({
+      secondaryActive : false,
+      searchResult : null
+    });
   }
 
   render () {
     return (
       <div className='estimation-component wrap'>
         <PrimaryDetails
-          onStepComplite={this.getPrimaryDetails.bind(this)}/>
+          onStepComplete   ={this.getPrimaryDetails.bind(this)}
+          onChangeSelection={this.refreshSelection.bind(this)}
+        />
         <SecondaryDetails
           year          ={this.state.year}
           modelID       ={this.state.modelID}
           isActive      ={this.state.secondaryActive}
-          onStepComplite={this.getSecondaryDetails.bind(this)}
-         />
+          onStepComplete={this.getSecondaryDetails.bind(this)}
+        />
         <SearchResult
           result={this.state.searchResult}
         />

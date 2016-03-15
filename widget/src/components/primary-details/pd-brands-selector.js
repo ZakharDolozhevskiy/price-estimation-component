@@ -16,7 +16,7 @@ export default class BrandSelector extends React.Component {
   }
 
   printOptions (source) {
-    return source ? source.map(el => <option key={el.id} value={el.id}>{el.name}</option>) : null;
+    return source.map(el => <option key={el.id} value={el.id}>{el.name}</option>);
   }
 
   render () {
@@ -24,7 +24,6 @@ export default class BrandSelector extends React.Component {
       <div>
         <label htmlFor="brands-selector"> Brands </label>
         <select id="brands-selector"
-          disabled={!this.state.brands}
           onChange={this.handleBrandSelect.bind(this)}
         >
           <option value="">select please</option>

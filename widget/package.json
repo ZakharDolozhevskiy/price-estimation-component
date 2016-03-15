@@ -1,7 +1,7 @@
 {
   "name": "price-estimation",
   "version": "1.0.0",
-  "description": "React component that estimates prices for cars",
+  "description": "React component that estimates prices of cars",
   "main": "index.js",
   "scripts": {
     "start": "gulp build"
@@ -23,6 +23,7 @@
     "babel-runtime": "^6.6.1",
     "babelify": "^7.2.0",
     "browserify": "^13.0.0",
+    "browserify-shim": "^3.8.12",
     "eslint": "^2.4.0",
     "eslint-config-airbnb": "^6.1.0",
     "eslint-plugin-react": "^4.2.1",
@@ -33,6 +34,10 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "browserify-shim": {
-    "react": "React"
+    "react": "global:React",
+    "react-dom": "global:ReactDOM"
+  },
+  "browserify": {
+    "transform": ["browserify-shim"]
   }
 }

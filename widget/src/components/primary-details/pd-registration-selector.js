@@ -1,8 +1,25 @@
 import React from 'react';
 import { fetchProductionYear } from '../../api';
 
-const months      = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const defaultYears = { from: 1900, to: new Date().getFullYear() };
+const months = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December'
+];
+
+const defaultYears = {
+  from: 1960,
+  to: new Date().getFullYear()
+};
 
 export default class RegistrationYearSelector extends React.Component {
   static propTypes = {
@@ -16,13 +33,21 @@ export default class RegistrationYearSelector extends React.Component {
   }
 
   componentWillReceiveProps (props) {
-    if (props.modelID && props.modelID !== this.state.modelID) {
+    if (!props.modelID) {
+      this.resetSelection();
+      this.setState({
+        modelID : null,
+        availableYears : null
+      });
+
+      return;
+    }
+
+    if (props.modelID !== this.state.modelID) {
+      this.resetSelection();
       fetchProductionYear(props.modelID)
         .then(this.createListWithYears.bind(this))
         .catch(this._errorFetchHandler.bind(this));
-    } else {
-      this.setState({ availableYears : null });
-      this.resetSelection();
     }
   }
 
@@ -45,7 +70,7 @@ export default class RegistrationYearSelector extends React.Component {
 
   resetSelection () {
     this.refs.months[0].defaultSelected = true;
-    this.refs.years[0].defaultSelected = true;
+    this.refs.years[0].defaultSelected  = true;
   }
 
   handleYearSelect (ev) {
@@ -56,9 +81,12 @@ export default class RegistrationYearSelector extends React.Component {
   }
 
   _parseMonthOrder (val) {
-    let month = months.indexOf(val);
+    let month = '01';
 
-    month = (month < 10) ? `0${month}` : month;
+    if (val) {
+      month = months.indexOf(val) + 1;
+      month = (month < 10) ? `0${month}` : month;
+    }
 
     return month;
   }
@@ -78,7 +106,7 @@ export default class RegistrationYearSelector extends React.Component {
           ref="months"
           disabled={!this.state.availableYears}
         >
-          <option>select please</option>
+          <option value="">select please</option>
           { monthsOpt }
         </select>
         <select id="prod-year-selector"
@@ -86,7 +114,7 @@ export default class RegistrationYearSelector extends React.Component {
           disabled={!this.state.availableYears}
           onChange={this.handleYearSelect.bind(this)}
         >
-          <option>select please</option>
+          <option value="">select please</option>
           { yearsOpt }
         </select>
       </div>

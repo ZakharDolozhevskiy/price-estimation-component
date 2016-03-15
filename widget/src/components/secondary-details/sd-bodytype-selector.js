@@ -10,23 +10,27 @@ export default class BodytypesSelector extends React.Component {
 
   constructor (props) {
     super(props);
-
-    this.state = {
-      modelID  : this.props.modelID,
-      prodYear : this.props.prodYear
-    };
-
-    fetchAboutBodytype(this.state.modelID, this.state.prodYear)
-      .then((bodytypes) =>
-        this.setState({ bodytypes })
-      );
+    this.state = {};
+    this.getBodytypes(this.props.modelID, this.props.prodYear);
   }
 
   componentWillReceiveProps (props) {
-    if (props.modelID === this.state.modelID) return;
+    if (props.modelID !== this.state.modelID) {
+      this.getBodytypes(props.modelID, props.prodYear);
+    }
+  }
 
-    fetchAboutBodytype(props.modelID, props.prodYear)
-      .then((bodytypes) => this.setState({ bodytypes, modelID : props.modelID }))
+  getBodytypes (modelID, prodYear) {
+    const _fetchError = () => {
+      this.setState({ modelID });
+      this.props.onSelect({ fetchError : true });
+    };
+
+    const _fetchSuccess = (bodytypes) => this.setState({ bodytypes, modelID });
+
+    fetchAboutBodytype(modelID, prodYear)
+      .then(_fetchSuccess)
+      .catch(_fetchError);
   }
 
   selectBodytype (ev) {

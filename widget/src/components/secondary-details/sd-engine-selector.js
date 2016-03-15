@@ -15,13 +15,17 @@ export default class EngineSelector extends React.Component {
   }
 
   componentWillReceiveProps (props) {
-      if (props.bodytype === this.state.bodytype) return;
+      if (!props.bodytype || props.modelID === this.state.modelID) return;
 
       this.refreshSelectValue();
 
       fetchAboutEnginesType(props.modelID, props.prodYear, props.bodytype)
         .then(engines =>
-          this.setState({ engines, bodytype : props.bodytype })
+          this.setState({
+            engines,
+            bodytype : props.bodytype,
+            modelID  : props.modelID
+          })
         );
   }
 
