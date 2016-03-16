@@ -1,4 +1,5 @@
 import React from 'react';
+import { fetchModels } from '../../api';
 
 /**
  * Response for model selection
@@ -6,7 +7,7 @@ import React from 'react';
 export default class ModelSelector extends React.Component {
 
   static propTypes = {
-    models   : React.PropTypes.array,
+    brandID  : React.PropTypes.string,
     onSelect : React.PropTypes.func.isRequired
   };
 
@@ -21,10 +22,22 @@ export default class ModelSelector extends React.Component {
    * @param {Array} props.models list of models's data
    */
   componentWillReceiveProps (props) {
-    if (props.models) {
-      this.setState({ models : props.models });
-    } else {
-      this.setState({ models : null });
+    if (!props.brandID) {
+      return this.setState({ models: null });
+    }
+
+    if (props.brandID !== this.state.brandID)
+    fetchModels(props.brandID).then((models) => {
+      this.setState({
+        brandID: props.brandID,
+        models
+      });
+    });
+  }
+
+  parseModelTitle (modelID) {
+    if (modelID) {
+      return this.state.models.filter((model) => model.id === +modelID)[0].name;
     }
   }
 
@@ -33,7 +46,10 @@ export default class ModelSelector extends React.Component {
    * @param {Object} ev - event object
    */
   handleModelSelect (ev) {
-    this.props.onSelect(ev.target.value);
+    const modelID = ev.target.value;
+    const modelTitle = this.parseModelTitle(modelID);
+
+    this.props.onSelect({ modelID, modelTitle });
   }
 
   /**

@@ -26,7 +26,7 @@ export default class EngineSelector extends React.Component {
    * @param {String} props.bodytype - selected bodytype
    */
   componentWillReceiveProps (props) {
-      if (!props.bodytype || props.modelID === this.state.modelID) return;
+      if (!props.bodytype || props.bodytype === this.state.bodytype) return;
 
       this.refreshSelectValue();
 
@@ -34,8 +34,7 @@ export default class EngineSelector extends React.Component {
         .then(engines =>
           this.setState({
             engines,
-            bodytype : props.bodytype,
-            modelID  : props.modelID
+            bodytype : props.bodytype
           })
         );
   }

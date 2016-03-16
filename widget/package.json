@@ -4,7 +4,7 @@
   "description": "React component that estimates prices of cars",
   "main": "index.js",
   "scripts": {
-    "start": "gulp build"
+    "start": "gulp dev"
   },
   "author": "",
   "license": "ISC",

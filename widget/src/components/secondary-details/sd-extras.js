@@ -27,12 +27,14 @@ export default class Extras extends React.Component {
    * @param {String} props.bodytype - selected bodytype
    */
   componentWillReceiveProps (props) {
-    if (props.modelID === this.state.modelID || !props.engine) return;
+    if (!props.engine || props.bodytype === this.state.bodytype ) return;
 
     fetchExtras(props.modelID, props.prodYear, props.bodytype, props.engine)
       .then((response) => {
         this.setState({
+          engine  : props.engine,
           modelID : props.modelID,
+          bodytype : props.bodytype,
           extras  : response.extras
         });
       });

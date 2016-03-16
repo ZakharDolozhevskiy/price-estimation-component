@@ -29,20 +29,14 @@ export default class PrimaryDetails extends React.Component {
    * @param {String} selectedBrand - selected brand ID
    */
   onBrandSelection (selectedBrand) {
-    const brand = this.state.brands.filter((brand) => brand.id === +selectedBrand)[0];
-
-    this.setState({
-      models  : brand ? brand.models : null,
-      brandID : selectedBrand,
-      modelID : null
-    });
+    this.setState(selectedBrand);
 
     // Reset previously selected info
     this.props.onChangeSelection();
   }
 
-  onModelSelection (modelID) {
-    this.setState({ modelID });
+  onModelSelection (selectedModel) {
+    this.setState(selectedModel);
 
     // Reset previously selected info
     this.props.onChangeSelection();
@@ -55,7 +49,9 @@ export default class PrimaryDetails extends React.Component {
   onYearSelection (year) {
     this.props.onStepComplete({
       brandID : this.state.brandID,
+      brandTitle : this.state.brandTitle,
       modelID : this.state.modelID,
+      modelTitle : this.state.modelTitle,
       year
     });
   }
@@ -67,7 +63,7 @@ export default class PrimaryDetails extends React.Component {
       <div>
         <h3>Primary details</h3>
         <BrandSelector onSelect={this.onBrandSelection.bind(this)} brands={this.state.brands}/>
-        <ModelSelector onSelect={this.onModelSelection.bind(this)} models={this.state.models}/>
+        <ModelSelector onSelect={this.onModelSelection.bind(this)} brandID={this.state.brandID}/>
         <RegistrationYearSelector onSelect={this.onYearSelection.bind(this)} modelID={this.state.modelID}/>
       </div>
     )

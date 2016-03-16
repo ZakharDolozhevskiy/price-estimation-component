@@ -20,12 +20,12 @@ export default class BodytypesSelector extends React.Component {
    */
   constructor (props) {
     super(props);
-    this.state = {};
-    this.getBodytypes(this.props.modelID, this.props.prodYear);
+    this.state = { prodYear : props.prodYear };
+    this.getBodytypes(props.modelID, props.prodYear);
   }
 
   componentWillReceiveProps (props) {
-    if (props.modelID !== this.state.modelID) {
+    if (props.prodYear !== this.state.prodYear) {
       this.getBodytypes(props.modelID, props.prodYear);
     }
   }
@@ -38,15 +38,23 @@ export default class BodytypesSelector extends React.Component {
   getBodytypes (modelID, prodYear) {
     // Notify parent component if error occurs
     const _fetchError = () => {
-      this.setState({ modelID });
+      this.setState({ prodYear });
       this.props.onSelect({ fetchError : true });
     };
 
-    const _fetchSuccess = (bodytypes) => this.setState({ bodytypes, modelID });
+    const _fetchSuccess = (bodytypes) => {
+      this.setState({ bodytypes, prodYear });
+    };
 
     fetchAboutBodytype(modelID, prodYear)
       .then(_fetchSuccess)
       .catch(_fetchError);
+  }
+
+  getBodytypeName (bodytypeID) {
+    if (bodytypeID) {
+      return this.state.bodytypes.filter((bodytype) => bodytype.id === bodytypeID)[0].name;
+    }
   }
 
   /**
@@ -54,7 +62,10 @@ export default class BodytypesSelector extends React.Component {
    * @param {Object} ev - event object
    */
   selectBodytype (ev) {
-    this.props.onSelect(ev.target.value);
+    const bodytype = ev.target.value;
+    const bodytypeName = this.getBodytypeName(bodytype);
+
+    this.props.onSelect({bodytype, bodytypeName});
   }
 
   /**

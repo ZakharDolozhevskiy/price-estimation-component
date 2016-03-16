@@ -203,7 +203,7 @@ module.exports = function(it){
   return toString.call(it).slice(8, -1);
 };
 },{}],27:[function(require,module,exports){
-var core = module.exports = {version: '2.1.5'};
+var core = module.exports = {version: '2.2.0'};
 if(typeof __e == 'number')__e = core; // eslint-disable-line no-undef
 },{}],28:[function(require,module,exports){
 // optional / simple context binding
@@ -966,11 +966,13 @@ var global         = require('./_global')
   , $JSON          = global.JSON
   , _stringify     = $JSON && $JSON.stringify
   , setter         = false
+  , PROTOTYPE      = 'prototype'
   , HIDDEN         = wks('_hidden')
+  , TO_PRIMITIVE   = wks('toPrimitive')
   , isEnum         = {}.propertyIsEnumerable
   , SymbolRegistry = shared('symbol-registry')
   , AllSymbols     = shared('symbols')
-  , ObjectProto    = Object.prototype
+  , ObjectProto    = Object[PROTOTYPE]
   , USE_NATIVE     = typeof $Symbol == 'function'
   , QObject        = global.QObject;
 
@@ -987,7 +989,7 @@ var setSymbolDesc = DESCRIPTORS && $fails(function(){
 } : dP;
 
 var wrap = function(tag){
-  var sym = AllSymbols[tag] = _create($Symbol.prototype);
+  var sym = AllSymbols[tag] = _create($Symbol[PROTOTYPE]);
   sym._k = tag;
   DESCRIPTORS && setter && setSymbolDesc(ObjectProto, tag, {
     configurable: true,
@@ -999,8 +1001,10 @@ var wrap = function(tag){
   return sym;
 };
 
-var isSymbol = function(it){
+var isSymbol = USE_NATIVE && typeof $Symbol.iterator == 'symbol' ? function(it){
   return typeof it == 'symbol';
+} : function(it){
+  return it instanceof $Symbol;
 };
 
 var $defineProperty = function defineProperty(it, key, D){
@@ -1080,16 +1084,12 @@ var BUGGY_JSON = $fails(function(){
 // 19.4.1.1 Symbol([description])
 if(!USE_NATIVE){
   $Symbol = function Symbol(){
-    if(isSymbol(this))throw TypeError('Symbol is not a constructor');
+    if(this instanceof $Symbol)throw TypeError('Symbol is not a constructor!');
     return wrap(uid(arguments.length > 0 ? arguments[0] : undefined));
   };
-  redefine($Symbol.prototype, 'toString', function toString(){
+  redefine($Symbol[PROTOTYPE], 'toString', function toString(){
     return this._k;
   });
-
-  isSymbol = function(it){
-    return it instanceof $Symbol;
-  };
 
   $GOPD.f = $getOwnPropertyDescriptor;
   $DP.f   = $defineProperty;
@@ -1125,7 +1125,7 @@ for(var symbols = (
 };
 
 // Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
-if(!QObject || !QObject.prototype || !QObject.prototype.findChild)setter = true;
+if(!QObject || !QObject[PROTOTYPE] || !QObject[PROTOTYPE].findChild)setter = true;
 
 $export($export.S + $export.F * !USE_NATIVE, 'Symbol', {
   // 19.4.2.1 Symbol.for(key)
@@ -1136,7 +1136,8 @@ $export($export.S + $export.F * !USE_NATIVE, 'Symbol', {
   },
   // 19.4.2.5 Symbol.keyFor(sym)
   keyFor: function keyFor(key){
-    return keyOf(SymbolRegistry, key);
+    if(isSymbol(key))return keyOf(SymbolRegistry, key);
+    throw TypeError(key + ' is not a symbol!');
   },
   useSetter: function(){ setter = true; },
   useSimple: function(){ setter = false; }
@@ -1160,13 +1161,15 @@ $export($export.S + $export.F * !USE_NATIVE, 'Object', {
 // 24.3.2 JSON.stringify(value [, replacer [, space]])
 $JSON && $export($export.S + $export.F * (!USE_NATIVE || BUGGY_JSON), 'JSON', {stringify: $stringify});
 
+// 19.4.3.4 Symbol.prototype[@@toPrimitive](hint)
+$Symbol[PROTOTYPE][TO_PRIMITIVE] || require('./_hide')($Symbol[PROTOTYPE], TO_PRIMITIVE, $Symbol[PROTOTYPE].valueOf);
 // 19.4.3.5 Symbol.prototype[@@toStringTag]
 setToStringTag($Symbol, 'Symbol');
 // 20.2.1.9 Math[@@toStringTag]
 setToStringTag(Math, 'Math', true);
 // 24.3.3 JSON[@@toStringTag]
 setToStringTag(global.JSON, 'JSON', true);
-},{"./_an-object":24,"./_core":27,"./_descriptors":30,"./_enum-keys":33,"./_export":34,"./_fails":35,"./_global":36,"./_has":37,"./_is-array":42,"./_keyof":48,"./_library":49,"./_meta":50,"./_object-create":51,"./_object-dp":52,"./_object-gopd":54,"./_object-gopn":56,"./_object-gopn-ext":55,"./_object-gops":57,"./_object-pie":61,"./_property-desc":63,"./_redefine":64,"./_set-to-string-tag":66,"./_shared":68,"./_to-iobject":72,"./_to-primitive":75,"./_uid":76,"./_wks":77}],87:[function(require,module,exports){
+},{"./_an-object":24,"./_core":27,"./_descriptors":30,"./_enum-keys":33,"./_export":34,"./_fails":35,"./_global":36,"./_has":37,"./_hide":38,"./_is-array":42,"./_keyof":48,"./_library":49,"./_meta":50,"./_object-create":51,"./_object-dp":52,"./_object-gopd":54,"./_object-gopn":56,"./_object-gopn-ext":55,"./_object-gops":57,"./_object-pie":61,"./_property-desc":63,"./_redefine":64,"./_set-to-string-tag":66,"./_shared":68,"./_to-iobject":72,"./_to-primitive":75,"./_uid":76,"./_wks":77}],87:[function(require,module,exports){
 require('./es6.array.iterator');
 var global        = require('./_global')
   , hide          = require('./_hide')
@@ -1591,11 +1594,14 @@ var _stringify = require('babel-runtime/core-js/json/stringify');
 var _stringify2 = _interopRequireDefault(_stringify);
 
 exports.fetchBrands = fetchBrands;
+exports.fetchModels = fetchModels;
 exports.fetchProductionYear = fetchProductionYear;
 exports.fetchAboutBodytype = fetchAboutBodytype;
 exports.fetchAboutEnginesType = fetchAboutEnginesType;
 exports.fetchExtras = fetchExtras;
 exports.fetchPrediction = fetchPrediction;
+exports.fetchValidBrands = fetchValidBrands;
+exports.fetchValidModels = fetchValidModels;
 
 var _isomorphicFetch = require('isomorphic-fetch');
 
@@ -1609,7 +1615,11 @@ var onJSON = function onJSON(res) {
 };
 
 function fetchBrands() {
-  return (0, _isomorphicFetch2.default)(BASE_URL + '/brands/models').then(onJSON);
+  return (0, _isomorphicFetch2.default)(BASE_URL + '/procurement/brands').then(onJSON);
+}
+
+function fetchModels(brandID) {
+  return (0, _isomorphicFetch2.default)(BASE_URL + '/procurement/brands/' + brandID + '/models').then(onJSON);
 }
 
 function fetchProductionYear(modelID) {
@@ -1642,7 +1652,15 @@ function fetchPrediction(payload) {
     }
   };
 
-  return (0, _isomorphicFetch2.default)(BASE_URL + '/cars/search', reqParams).then(onJSON);
+  return (0, _isomorphicFetch2.default)(BASE_URL + '/cars/search?page=1', reqParams).then(onJSON);
+}
+
+function fetchValidBrands() {
+  return (0, _isomorphicFetch2.default)(BASE_URL + '/cars/params').then(onJSON);
+}
+
+function fetchValidModels() {
+  return (0, _isomorphicFetch2.default)(BASE_URL + '/brands/models').then(onJSON);
 }
 
 },{"babel-runtime/core-js/json/stringify":1,"isomorphic-fetch":88}],91:[function(require,module,exports){
@@ -1727,23 +1745,15 @@ var PrimaryDetails = function (_React$Component) {
   (0, _createClass3.default)(PrimaryDetails, [{
     key: 'onBrandSelection',
     value: function onBrandSelection(selectedBrand) {
-      var brand = this.state.brands.filter(function (brand) {
-        return brand.id === +selectedBrand;
-      })[0];
-
-      this.setState({
-        models: brand ? brand.models : null,
-        brandID: selectedBrand,
-        modelID: null
-      });
+      this.setState(selectedBrand);
 
       // Reset previously selected info
       this.props.onChangeSelection();
     }
   }, {
     key: 'onModelSelection',
-    value: function onModelSelection(modelID) {
-      this.setState({ modelID: modelID });
+    value: function onModelSelection(selectedModel) {
+      this.setState(selectedModel);
 
       // Reset previously selected info
       this.props.onChangeSelection();
@@ -1759,7 +1769,9 @@ var PrimaryDetails = function (_React$Component) {
     value: function onYearSelection(year) {
       this.props.onStepComplete({
         brandID: this.state.brandID,
+        brandTitle: this.state.brandTitle,
         modelID: this.state.modelID,
+        modelTitle: this.state.modelTitle,
         year: year
       });
     }
@@ -1783,7 +1795,7 @@ var PrimaryDetails = function (_React$Component) {
           'Primary details'
         ),
         _react2.default.createElement(_pdBrandsSelector2.default, { onSelect: this.onBrandSelection.bind(this), brands: this.state.brands }),
-        _react2.default.createElement(_pdModelsSelector2.default, { onSelect: this.onModelSelection.bind(this), models: this.state.models }),
+        _react2.default.createElement(_pdModelsSelector2.default, { onSelect: this.onModelSelection.bind(this), brandID: this.state.brandID }),
         _react2.default.createElement(_pdRegistrationSelector2.default, { onSelect: this.onYearSelection.bind(this), modelID: this.state.modelID })
       );
     }
@@ -1848,16 +1860,28 @@ var BrandSelector = function (_React$Component) {
     return _this;
   }
 
-  /**
-   * Notify parent component when brand selected
-   * @param {Object} ev - event object
-   */
-
-
   (0, _createClass3.default)(BrandSelector, [{
+    key: "parseBrandTitle",
+    value: function parseBrandTitle(brandID) {
+      if (brandID) {
+        return this.state.brands.filter(function (brand) {
+          return brand.id === +brandID;
+        })[0].name;
+      }
+    }
+
+    /**
+     * Notify parent component when brand selected
+     * @param {Object} ev - event object
+     */
+
+  }, {
     key: "handleBrandSelect",
     value: function handleBrandSelect(ev) {
-      this.props.onSelect(ev.target.value);
+      var brandID = ev.target.value;
+      var brandTitle = this.parseBrandTitle(brandID);
+
+      this.props.onSelect({ brandID: brandID, brandTitle: brandTitle });
     }
 
     /**
@@ -1915,35 +1939,37 @@ exports.default = BrandSelector;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"babel-runtime/core-js/object/get-prototype-of":4,"babel-runtime/helpers/classCallCheck":9,"babel-runtime/helpers/createClass":10,"babel-runtime/helpers/inherits":11,"babel-runtime/helpers/possibleConstructorReturn":12}],93:[function(require,module,exports){
 (function (global){
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _getPrototypeOf = require("babel-runtime/core-js/object/get-prototype-of");
+var _getPrototypeOf = require('babel-runtime/core-js/object/get-prototype-of');
 
 var _getPrototypeOf2 = _interopRequireDefault(_getPrototypeOf);
 
-var _classCallCheck2 = require("babel-runtime/helpers/classCallCheck");
+var _classCallCheck2 = require('babel-runtime/helpers/classCallCheck');
 
 var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
 
-var _createClass2 = require("babel-runtime/helpers/createClass");
+var _createClass2 = require('babel-runtime/helpers/createClass');
 
 var _createClass3 = _interopRequireDefault(_createClass2);
 
-var _possibleConstructorReturn2 = require("babel-runtime/helpers/possibleConstructorReturn");
+var _possibleConstructorReturn2 = require('babel-runtime/helpers/possibleConstructorReturn');
 
 var _possibleConstructorReturn3 = _interopRequireDefault(_possibleConstructorReturn2);
 
-var _inherits2 = require("babel-runtime/helpers/inherits");
+var _inherits2 = require('babel-runtime/helpers/inherits');
 
 var _inherits3 = _interopRequireDefault(_inherits2);
 
 var _react = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null);
 
 var _react2 = _interopRequireDefault(_react);
+
+var _api = require('../../api');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1971,12 +1997,28 @@ var ModelSelector = function (_React$Component) {
 
 
   (0, _createClass3.default)(ModelSelector, [{
-    key: "componentWillReceiveProps",
+    key: 'componentWillReceiveProps',
     value: function componentWillReceiveProps(props) {
-      if (props.models) {
-        this.setState({ models: props.models });
-      } else {
-        this.setState({ models: null });
+      var _this2 = this;
+
+      if (!props.brandID) {
+        return this.setState({ models: null });
+      }
+
+      if (props.brandID !== this.state.brandID) (0, _api.fetchModels)(props.brandID).then(function (models) {
+        _this2.setState({
+          brandID: props.brandID,
+          models: models
+        });
+      });
+    }
+  }, {
+    key: 'parseModelTitle',
+    value: function parseModelTitle(modelID) {
+      if (modelID) {
+        return this.state.models.filter(function (model) {
+          return model.id === +modelID;
+        })[0].name;
       }
     }
 
@@ -1986,9 +2028,12 @@ var ModelSelector = function (_React$Component) {
      */
 
   }, {
-    key: "handleModelSelect",
+    key: 'handleModelSelect',
     value: function handleModelSelect(ev) {
-      this.props.onSelect(ev.target.value);
+      var modelID = ev.target.value;
+      var modelTitle = this.parseModelTitle(modelID);
+
+      this.props.onSelect({ modelID: modelID, modelTitle: modelTitle });
     }
 
     /**
@@ -1998,37 +2043,37 @@ var ModelSelector = function (_React$Component) {
      */
 
   }, {
-    key: "printOptions",
+    key: 'printOptions',
     value: function printOptions(source) {
       return source ? source.map(function (el) {
         return _react2.default.createElement(
-          "option",
+          'option',
           { key: el.id, value: el.id },
           el.name
         );
       }) : null;
     }
   }, {
-    key: "render",
+    key: 'render',
     value: function render() {
       return _react2.default.createElement(
-        "div",
+        'div',
         null,
         _react2.default.createElement(
-          "label",
-          { htmlFor: "models-selector" },
-          " Models "
+          'label',
+          { htmlFor: 'models-selector' },
+          ' Models '
         ),
         _react2.default.createElement(
-          "select",
-          { id: "models-selector",
+          'select',
+          { id: 'models-selector',
             disabled: !this.state.models,
             onChange: this.handleModelSelect.bind(this)
           },
           _react2.default.createElement(
-            "option",
-            { value: "" },
-            "select please"
+            'option',
+            { value: '' },
+            'select please'
           ),
           this.printOptions(this.state.models)
         )
@@ -2039,13 +2084,13 @@ var ModelSelector = function (_React$Component) {
 }(_react2.default.Component);
 
 ModelSelector.propTypes = {
-  models: _react2.default.PropTypes.array,
+  brandID: _react2.default.PropTypes.string,
   onSelect: _react2.default.PropTypes.func.isRequired
 };
 exports.default = ModelSelector;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"babel-runtime/core-js/object/get-prototype-of":4,"babel-runtime/helpers/classCallCheck":9,"babel-runtime/helpers/createClass":10,"babel-runtime/helpers/inherits":11,"babel-runtime/helpers/possibleConstructorReturn":12}],94:[function(require,module,exports){
+},{"../../api":90,"babel-runtime/core-js/object/get-prototype-of":4,"babel-runtime/helpers/classCallCheck":9,"babel-runtime/helpers/createClass":10,"babel-runtime/helpers/inherits":11,"babel-runtime/helpers/possibleConstructorReturn":12}],94:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -2515,14 +2560,19 @@ var SecondaryDetails = function (_React$Component) {
     /**
      * Listen for bodytype changes.
      * If bodytype fetch error hide engine and bodytype filed and stop to load extras options
-     * @param {Object} res - payload from bodytype component
+     * @param {Object} bodytype - payload from bodytype component
      */
 
   }, {
     key: 'onBodytypeSelect',
     value: function onBodytypeSelect(res) {
       if (!res.fetchError) {
-        this.setState({ isCompleted: false, bodytype: res });
+        this.setState({
+          isCompleted: false,
+          engine: null,
+          bodytypeName: res.bodytypeName,
+          bodytype: res.bodytype
+        });
       } else {
         this.setState({
           isCompleted: true,
@@ -2546,9 +2596,10 @@ var SecondaryDetails = function (_React$Component) {
     key: 'onSearch',
     value: function onSearch() {
       this.props.onStepComplete({
-        bodytype: this.state.bodytype || '',
-        engine: this.state.engine || '',
-        kilometers: this.refs.kilometers.value || '0'
+        bodytype: this.state.bodytype,
+        bodytypeName: this.state.bodytypeName,
+        engine: this.state.engine,
+        kilometers: this.refs.kilometers.value
       });
     }
   }, {
@@ -2671,15 +2722,15 @@ var BodytypesSelector = function (_React$Component) {
 
     var _this = (0, _possibleConstructorReturn3.default)(this, (0, _getPrototypeOf2.default)(BodytypesSelector).call(this, props));
 
-    _this.state = {};
-    _this.getBodytypes(_this.props.modelID, _this.props.prodYear);
+    _this.state = { prodYear: props.prodYear };
+    _this.getBodytypes(props.modelID, props.prodYear);
     return _this;
   }
 
   (0, _createClass3.default)(BodytypesSelector, [{
     key: 'componentWillReceiveProps',
     value: function componentWillReceiveProps(props) {
-      if (props.modelID !== this.state.modelID) {
+      if (props.prodYear !== this.state.prodYear) {
         this.getBodytypes(props.modelID, props.prodYear);
       }
     }
@@ -2697,15 +2748,24 @@ var BodytypesSelector = function (_React$Component) {
 
       // Notify parent component if error occurs
       var _fetchError = function _fetchError() {
-        _this2.setState({ modelID: modelID });
+        _this2.setState({ prodYear: prodYear });
         _this2.props.onSelect({ fetchError: true });
       };
 
       var _fetchSuccess = function _fetchSuccess(bodytypes) {
-        return _this2.setState({ bodytypes: bodytypes, modelID: modelID });
+        _this2.setState({ bodytypes: bodytypes, prodYear: prodYear });
       };
 
       (0, _api.fetchAboutBodytype)(modelID, prodYear).then(_fetchSuccess).catch(_fetchError);
+    }
+  }, {
+    key: 'getBodytypeName',
+    value: function getBodytypeName(bodytypeID) {
+      if (bodytypeID) {
+        return this.state.bodytypes.filter(function (bodytype) {
+          return bodytype.id === bodytypeID;
+        })[0].name;
+      }
     }
 
     /**
@@ -2716,7 +2776,10 @@ var BodytypesSelector = function (_React$Component) {
   }, {
     key: 'selectBodytype',
     value: function selectBodytype(ev) {
-      this.props.onSelect(ev.target.value);
+      var bodytype = ev.target.value;
+      var bodytypeName = this.getBodytypeName(bodytype);
+
+      this.props.onSelect({ bodytype: bodytype, bodytypeName: bodytypeName });
     }
 
     /**
@@ -2842,15 +2905,14 @@ var EngineSelector = function (_React$Component) {
     value: function componentWillReceiveProps(props) {
       var _this2 = this;
 
-      if (!props.bodytype || props.modelID === this.state.modelID) return;
+      if (!props.bodytype || props.bodytype === this.state.bodytype) return;
 
       this.refreshSelectValue();
 
       (0, _api.fetchAboutEnginesType)(props.modelID, props.prodYear, props.bodytype).then(function (engines) {
         return _this2.setState({
           engines: engines,
-          bodytype: props.bodytype,
-          modelID: props.modelID
+          bodytype: props.bodytype
         });
       });
     }
@@ -3010,11 +3072,13 @@ var Extras = function (_React$Component) {
     value: function componentWillReceiveProps(props) {
       var _this2 = this;
 
-      if (props.modelID === this.state.modelID || !props.engine) return;
+      if (!props.engine || props.bodytype === this.state.bodytype) return;
 
       (0, _api.fetchExtras)(props.modelID, props.prodYear, props.bodytype, props.engine).then(function (response) {
         _this2.setState({
+          engine: props.engine,
           modelID: props.modelID,
+          bodytype: props.bodytype,
           extras: response.extras
         });
       });
@@ -3142,25 +3206,123 @@ var Root = function (_React$Component) {
       secondaryActive: false,
       searchResult: null
     };
+
+    (0, _api.fetchValidBrands)().then(function (validBrands) {
+      return _this.setState({ validBrands: validBrands });
+    });
+
+    (0, _api.fetchValidModels)().then(function (validModels) {
+      return _this.setState({ validModels: validModels });
+    });
     return _this;
   }
 
   /**
-   * Helper method. Parse engine power
-   * @param {String} str - describe selected engine
-   * @returns {String} - parsed engine value
+   * Return string with replaced slashes and whitespaces.
    * @private
    */
 
 
   (0, _createClass3.default)(Root, [{
-    key: '_parseEnginePower',
-    value: function _parseEnginePower(str) {
-      return '' + str.split('&power=').reverse()[0] * 100;
+    key: '_resetValueString',
+    value: function _resetValueString(str) {
+      return str.replace(/-|\s/g, '').toLowerCase();
     }
 
     /**
-     * Concat search params from children components
+     * Retunr valid engine param fro search
+     * @param {String} engineTitle - Full title about engine
+     * @returns {string} - fromatted value of engine
+     * @private
+       */
+
+  }, {
+    key: '_getValidEnginePower',
+    value: function _getValidEnginePower(engineTitle) {
+      return engineTitle ? '' + engineTitle.split('&power=').reverse()[0] * 100 : '';
+    }
+  }, {
+    key: '_getValidYear',
+    value: function _getValidYear(year) {
+      return year.split('-')[0];
+    }
+
+    /**
+     * Retrun valid ID for searched brand
+     * @param {String} brandTitle - Name of searched brand
+     * @returns {String}
+     * @private
+     */
+
+  }, {
+    key: '_getValidBrandID',
+    value: function _getValidBrandID(brandTitle) {
+      var key = void 0,
+          validBrandsTitle = void 0;
+      var validBrands = this.state.validBrands.brand.valid_values;
+      var fixedTitle = this._resetValueString(brandTitle);
+
+      for (key in validBrands) {
+        validBrandsTitle = this._resetValueString(validBrands[key]);
+
+        if (validBrands.hasOwnProperty(key) && validBrandsTitle === fixedTitle) {
+          return key;
+        }
+      }
+    }
+
+    /**
+     * Return ID of searched bodytype
+     * @param {String} bodytype - name of searched bodytype
+     * @returns {string}
+     * @private
+     */
+
+  }, {
+    key: '_getValidBodytype',
+    value: function _getValidBodytype(bodytype) {
+      var validBodytypes = this.state.validBrands.bodytype.valid_values;
+
+      for (var key in validBodytypes) {
+        if (validBodytypes.hasOwnProperty(key) && validBodytypes[key] === bodytype) {
+          return key;
+        }
+      }
+    }
+
+    /**
+     * Return formatted model id fro search
+     * @param {String} brandID - valid ID of searched brand
+     * @param modelTitle - name of searched model
+     * @returns {String} - valid model ID
+     * @private
+    */
+
+  }, {
+    key: '_getValidModelID',
+    value: function _getValidModelID() {
+      var _this2 = this;
+
+      var brandID = arguments.length <= 0 || arguments[0] === undefined ? '' : arguments[0];
+      var modelTitle = arguments.length <= 1 || arguments[1] === undefined ? '' : arguments[1];
+
+      var title = this._resetValueString(modelTitle);
+
+      var models = this.state.validModels.filter(function (brand) {
+        return brand.id === +brandID;
+      })[0];
+
+      var model = models.models.filter(function (model) {
+        var validModelName = _this2._resetValueString(model.name);
+
+        return title === validModelName || new RegExp(title).test(validModelName);
+      });
+
+      return model[0] ? model[0].id : '';
+    }
+
+    /**
+     * Concat search params from children components and creat valid param for search request
      * @param {Object} opt - search params
      * @returns {Object} - collected prams for search
      */
@@ -3168,13 +3330,16 @@ var Root = function (_React$Component) {
   }, {
     key: 'getPredictionParams',
     value: function getPredictionParams(opt) {
+      var validBrandID = this._getValidBrandID(this.state.brandTitle);
+      var validModelID = this._getValidModelID(validBrandID, this.state.modelTitle);
+
       return {
-        brand: this.state.brandID,
-        model: this.state.modelID,
-        mileage_from: opt.kilometers,
-        bodytype: opt.bodytype,
-        power_from: this._parseEnginePower(opt.engine),
-        initial_registration_from: this.state.year
+        brand: validBrandID,
+        model: validModelID,
+        bodytype: this._getValidBodytype(opt.bodytypeName),
+        power_from: this._getValidEnginePower(opt.engine),
+        mileage_to: opt.kilometers || '200000',
+        initial_registration_from: this._getValidYear(this.state.year)
       };
     }
 
@@ -3188,7 +3353,9 @@ var Root = function (_React$Component) {
     value: function getPrimaryDetails(data) {
       this.setState({
         brandID: data.brandID,
+        brandTitle: data.brandTitle,
         modelID: data.modelID,
+        modelTitle: data.modelTitle,
         year: data.year,
         secondaryActive: true
       });
@@ -3202,12 +3369,12 @@ var Root = function (_React$Component) {
   }, {
     key: 'getSecondaryDetails',
     value: function getSecondaryDetails(data) {
-      var _this2 = this;
+      var _this3 = this;
 
       var params = this.getPredictionParams(data);
 
       (0, _api.fetchPrediction)(params).then(function (res) {
-        return _this2.setState({ searchResult: res.results });
+        return _this3.setState({ searchResult: res.results });
       });
     }
 

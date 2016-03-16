@@ -15,12 +15,21 @@ export default class BrandSelector extends React.Component {
     this.state = { brands : props.brands };
   }
 
+  parseBrandTitle (brandID) {
+    if (brandID) {
+      return this.state.brands.filter((brand) => brand.id === +brandID)[0].name;
+    }
+  }
+
   /**
    * Notify parent component when brand selected
    * @param {Object} ev - event object
    */
   handleBrandSelect (ev) {
-    this.props.onSelect(ev.target.value);
+    const brandID = ev.target.value;
+    const brandTitle = this.parseBrandTitle(brandID);
+
+    this.props.onSelect({brandID, brandTitle});
   }
 
   /**

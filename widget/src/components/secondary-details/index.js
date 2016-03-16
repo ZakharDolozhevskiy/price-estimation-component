@@ -27,11 +27,16 @@ export default class SecondaryDetails extends React.Component {
   /**
    * Listen for bodytype changes.
    * If bodytype fetch error hide engine and bodytype filed and stop to load extras options
-   * @param {Object} res - payload from bodytype component
+   * @param {Object} bodytype - payload from bodytype component
    */
   onBodytypeSelect (res) {
     if (!res.fetchError) {
-      this.setState({ isCompleted : false, bodytype : res });
+      this.setState({
+        isCompleted  : false,
+        engine       : null,
+        bodytypeName : res.bodytypeName,
+        bodytype     : res.bodytype,
+      });
     } else {
       this.setState({
         isCompleted : true,
@@ -51,9 +56,10 @@ export default class SecondaryDetails extends React.Component {
    */
   onSearch () {
     this.props.onStepComplete({
-      bodytype   : this.state.bodytype || '',
-      engine     : this.state.engine   || '',
-      kilometers : this.refs.kilometers.value || '0'
+      bodytype       : this.state.bodytype,
+      bodytypeName   : this.state.bodytypeName,
+      engine         : this.state.engine,
+      kilometers     : this.refs.kilometers.value
     });
   }
 

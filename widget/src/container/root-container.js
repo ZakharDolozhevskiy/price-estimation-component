@@ -1,5 +1,5 @@
 import React from 'react';
-import { fetchPrediction } from '../api';
+import { fetchPrediction, fetchValidBrands, fetchValidModels } from '../api';
 import SearchResult from '../components/search-result';
 import PrimaryDetails from '../components/primary-details';
 import SecondaryDetails from '../components/secondary-details';
@@ -12,35 +12,116 @@ export default class Root extends React.Component {
 
   constructor () {
     super();
+
     this.state = {
       secondaryActive : false,
       searchResult    : null
     };
+
+    fetchValidBrands().then(validBrands =>
+      this.setState({ validBrands })
+    );
+
+    fetchValidModels().then(validModels =>
+      this.setState({ validModels })
+    );
   }
 
   /**
-   * Helper method. Parse engine power
-   * @param {String} str - describe selected engine
-   * @returns {String} - parsed engine value
+   * Return string with replaced slashes and whitespaces.
    * @private
    */
-  _parseEnginePower (str) {
-    return `${str.split('&power=').reverse()[0] * 100}`;
+  _resetValueString (str) {
+    return str.replace(/-|\s/g,'').toLowerCase();
   }
 
   /**
-   * Concat search params from children components
+   * Retunr valid engine param fro search
+   * @param {String} engineTitle - Full title about engine
+   * @returns {string} - fromatted value of engine
+   * @private
+     */
+  _getValidEnginePower (engineTitle) {
+      return engineTitle ? `${engineTitle.split('&power=').reverse()[0] * 100}` : '';
+  }
+
+  _getValidYear (year) {
+    return year.split('-')[0]
+  }
+
+  /**
+   * Retrun valid ID for searched brand
+   * @param {String} brandTitle - Name of searched brand
+   * @returns {String}
+   * @private
+   */
+  _getValidBrandID (brandTitle) {
+    let key, validBrandsTitle;
+    const validBrands = this.state.validBrands.brand.valid_values;
+    const fixedTitle =  this._resetValueString(brandTitle);
+
+    for (key in validBrands) {
+      validBrandsTitle = this._resetValueString(validBrands[key]);
+
+      if (validBrands.hasOwnProperty(key) && validBrandsTitle === fixedTitle) {
+        return key;
+      }
+    }
+  }
+
+  /**
+   * Return ID of searched bodytype
+   * @param {String} bodytype - name of searched bodytype
+   * @returns {string}
+   * @private
+   */
+  _getValidBodytype (bodytype) {
+    const validBodytypes = this.state.validBrands.bodytype.valid_values;
+
+    for (let key in validBodytypes) {
+      if (validBodytypes.hasOwnProperty(key) && validBodytypes[key] === bodytype) {
+        return key;
+      }
+    }
+  }
+
+  /**
+   * Return formatted model id fro search
+   * @param {String} brandID - valid ID of searched brand
+   * @param modelTitle - name of searched model
+   * @returns {String} - valid model ID
+   * @private
+  */
+  _getValidModelID (brandID = '', modelTitle = '') {
+    const title = this._resetValueString(modelTitle);
+
+    const models = this.state.validModels.filter((brand) => brand.id === +brandID)[0];
+
+    const model = models.models.filter((model) => {
+      const validModelName = this._resetValueString(model.name);
+
+      return (title === validModelName || new RegExp(title).test(validModelName));
+    });
+
+    return model[0] ? model[0].id : '';
+  }
+
+  /**
+   * Concat search params from children components and creat valid param for search request
    * @param {Object} opt - search params
    * @returns {Object} - collected prams for search
    */
   getPredictionParams (opt) {
+    const validBrandID = this._getValidBrandID(this.state.brandTitle);
+    const validModelID = this._getValidModelID(validBrandID, this.state.modelTitle);
+
     return {
-      brand        : this.state.brandID,
-      model        : this.state.modelID,
-      mileage_from : opt.kilometers,
-      bodytype     : opt.bodytype,
-      power_from   : this._parseEnginePower(opt.engine),
-      initial_registration_from : this.state.year
+      brand        : validBrandID,
+      model        : validModelID,
+      bodytype     : this._getValidBodytype(opt.bodytypeName),
+      power_from   : this._getValidEnginePower(opt.engine),
+      mileage_to   : opt.kilometers || '200000',
+      initial_registration_from :  this._getValidYear(this.state.year)
     };
   }
 
@@ -50,9 +131,11 @@ export default class Root extends React.Component {
    */
   getPrimaryDetails (data) {
     this.setState({
-      brandID : data.brandID,
-      modelID : data.modelID,
-      year    : data.year,
+      brandID    : data.brandID,
+      brandTitle : data.brandTitle,
+      modelID    : data.modelID,
+      modelTitle : data.modelTitle,
+      year       : data.year,
       secondaryActive : true
     });
   }
