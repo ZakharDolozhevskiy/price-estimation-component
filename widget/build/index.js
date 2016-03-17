@@ -2374,82 +2374,19 @@ var SearchResult = function (_React$Component) {
   (0, _createClass3.default)(SearchResult, [{
     key: 'printSearchResult',
     value: function printSearchResult(source) {
-      var _this2 = this;
-
       return source.map(function (item) {
         return _react2.default.createElement(
           'div',
           { key: item.id },
-          _this2._printHeader(item.name, item.brand, item.price, item.mileage),
-          _this2._printImage(item.main_image),
-          _this2._printDescription(item.bodytype, item.initial_registration, item.power),
+          'Prediction price: ',
+          _react2.default.createElement(
+            'strong',
+            null,
+            item.price.predicted
+          ),
           _react2.default.createElement('hr', null)
         );
       });
-    }
-  }, {
-    key: '_printHeader',
-    value: function _printHeader(title, brand, price, mileage) {
-      return _react2.default.createElement(
-        'div',
-        null,
-        _react2.default.createElement(
-          'h5',
-          null,
-          brand.name,
-          ' - ',
-          title
-        ),
-        'Price: ',
-        _react2.default.createElement(
-          'strong',
-          null,
-          price.predicted,
-          ' '
-        ),
-        'Mileage: ',
-        _react2.default.createElement(
-          'strong',
-          null,
-          ' ',
-          mileage
-        )
-      );
-    }
-  }, {
-    key: '_printImage',
-    value: function _printImage(img) {
-      return _react2.default.createElement(
-        'div',
-        null,
-        _react2.default.createElement('img', { src: img.thumb })
-      );
-    }
-  }, {
-    key: '_printDescription',
-    value: function _printDescription(bodytype, registration, power) {
-      return _react2.default.createElement(
-        'div',
-        null,
-        _react2.default.createElement(
-          'p',
-          null,
-          'Bodytype : ',
-          bodytype.name
-        ),
-        _react2.default.createElement(
-          'p',
-          null,
-          'First registration : ',
-          registration
-        ),
-        _react2.default.createElement(
-          'p',
-          null,
-          'Engine : ',
-          power.hp
-        )
-      );
     }
   }, {
     key: 'render',
