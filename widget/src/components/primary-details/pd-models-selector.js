@@ -26,13 +26,14 @@ export default class ModelSelector extends React.Component {
       return this.setState({ models: null });
     }
 
-    if (props.brandID !== this.state.brandID)
-    fetchModels(props.brandID).then((models) => {
-      this.setState({
-        brandID: props.brandID,
-        models
+    if (props.brandID !== this.state.brandID) {
+      fetchModels(props.brandID).then((models) => {
+        this.setState({
+          brandID: props.brandID,
+          models
+        });
       });
-    });
+    }
   }
 
   parseModelTitle (modelID) {

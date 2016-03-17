@@ -7,6 +7,7 @@ import { fetchExtras } from '../../api';
 export default class Extras extends React.Component {
 
   static propTypes = {
+    onExtrasLoad : React.PropTypes.func.isRequired,
     modelID  : React.PropTypes.string.isRequired,
     prodYear : React.PropTypes.string.isRequired,
     bodytype : React.PropTypes.string,
@@ -27,17 +28,25 @@ export default class Extras extends React.Component {
    * @param {String} props.bodytype - selected bodytype
    */
   componentWillReceiveProps (props) {
-    if (!props.engine || props.bodytype === this.state.bodytype ) return;
+    if (!props.engine || props.engine === this.state.engine ) return;
+
+    this.setState({
+      engine   : props.engine,
+      modelID  : props.modelID
+    });
 
     fetchExtras(props.modelID, props.prodYear, props.bodytype, props.engine)
-      .then((response) => {
-        this.setState({
-          engine  : props.engine,
-          modelID : props.modelID,
-          bodytype : props.bodytype,
-          extras  : response.extras
-        });
-      });
+      .then((response) => this.successFetchHandler(response));
+
+  }
+
+  successFetchHandler (response) {
+    this.setState({ extras : response.extras });
+
+    this.props.onExtrasLoad({
+      carID          : response.id,
+      predictedPrice : response.predicted_price
+    });
   }
 
   /**

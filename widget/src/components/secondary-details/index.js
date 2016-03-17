@@ -21,13 +21,16 @@ export default class SecondaryDetails extends React.Component {
   }
 
   componentWillReceiveProps (props) {
-      this.setState({ modelID : props.modelID, year : props.year });
+    this.setState({
+      modelID : props.modelID,
+      year : props.year
+    });
   }
 
   /**
    * Listen for bodytype changes.
    * If bodytype fetch error hide engine and bodytype filed and stop to load extras options
-   * @param {Object} bodytype - payload from bodytype component
+   * @param {Object} res - payload from bodytype component
    */
   onBodytypeSelect (res) {
     if (!res.fetchError) {
@@ -41,13 +44,24 @@ export default class SecondaryDetails extends React.Component {
       this.setState({
         isCompleted : true,
         bodytype    : null,
-        engine      : null
+        engine      : null,
+        predictedPrice : null
       });
     }
   }
 
   onEngineSelect (val) {
-    this.setState({ isCompleted : true, engine : val });
+    this.setState({
+      isCompleted : false,
+      engine : val
+    });
+  }
+
+  onExtrasLoaded (payload) {
+    this.setState({
+      isCompleted    : true,
+      predictedPrice : payload.predictedPrice
+    });
   }
 
   /**
@@ -56,10 +70,7 @@ export default class SecondaryDetails extends React.Component {
    */
   onSearch () {
     this.props.onStepComplete({
-      bodytype       : this.state.bodytype,
-      bodytypeName   : this.state.bodytypeName,
-      engine         : this.state.engine,
-      kilometers     : this.refs.kilometers.value
+      predictedPrice : this.state.predictedPrice || ''
     });
   }
 
@@ -86,7 +97,6 @@ export default class SecondaryDetails extends React.Component {
           <button
             type="button"
             onClick={this.onSearch.bind(this)}
-            modelID ={this.state.modelID}
             disabled={!this.state.isCompleted}>
             Receive the prediction
           </button>
@@ -96,6 +106,7 @@ export default class SecondaryDetails extends React.Component {
           prodYear={this.state.year}
           modelID ={this.state.modelID}
           engine  ={this.state.engine}
+          onExtrasLoad={this.onExtrasLoaded.bind(this)}
         />
       </div>
     )

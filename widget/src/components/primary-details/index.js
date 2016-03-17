@@ -29,7 +29,10 @@ export default class PrimaryDetails extends React.Component {
    * @param {String} selectedBrand - selected brand ID
    */
   onBrandSelection (selectedBrand) {
-    this.setState(selectedBrand);
+    this.setState({
+      brandID: selectedBrand.brandID,
+      modelID : null
+    });
 
     // Reset previously selected info
     this.props.onChangeSelection();
